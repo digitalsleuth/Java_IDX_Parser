@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Java Cache IDX parser
 # Version 1.0 - 12 Jan 13: @bbaskin
 # Version 1.1 - 22 Jan 13:
@@ -18,7 +19,9 @@
 #   General cleanup to better Python standards
 #   Put in error handling for truncated data, based on a sample data submitted
 #   by Kristinn Gudjonsson
-
+# Version 1.6 - 11 May 20:
+#   Convert script to python3 for future compatibility - Corey Forman (https://github.com/digitalsleuth)
+#
 # * Parsing based off source: http://jdk-source-code.googlecode.com/svn/trunk/jdk6u21_src/deploy/src/common/share/classes/com/sun/deploy/cache/CacheEntry.java
 # * Some updates based off research by Mark Woan (@woanwave) - https://github.com/woanware/javaidx/tree/master/Documents
 # * Thanks to Corey Harrell for providing a version 6.03 file for testing and for initial inspiration:
@@ -73,7 +76,7 @@ import sys
 import time
 import zlib
 
-__VERSION__ = '1.5'
+__VERSION__ = '1.6'
 __CSV__ = False
 
 
@@ -85,7 +88,7 @@ def sec2_parse():
     csv_body = ''
     data.seek(128)
     if data.tell() >= filesize:
-        print '[!] Error! Truncated file. Section 2 is missing.'
+        print('[!] Error! Truncated file. Section 2 is missing.')
         return
 
     len_URL = struct.unpack('>l', data.read(4))[0]
@@ -95,22 +98,22 @@ def sec2_parse():
     data_IP = data.read(len_IP)
     sec2_fields = struct.unpack('>l', data.read(4))[0]
 
-    print '\n[*] Section 2 (Download History) found:'
-    print 'URL: %s' % (data_URL)
-    print 'IP: %s' % (data_IP)
+    print('\n[*] Section 2 (Download History) found:')
+    print('URL: %s' % (data_URL.decode()))
+    print('IP: %s' % (data_IP.decode()))
     if __CSV__:
-        csv_body = fname + ',' + data_URL + ',' + data_IP
+        csv_body = fname + ',' + data_URL.decode() + ',' + data_IP.decode()
     for i in range(0, sec2_fields):
         len_field = struct.unpack('>h', data.read(2))[0]
         field = data.read(len_field)
         len_value = struct.unpack('>h', data.read(2))[0]
         value = data.read(len_value)
-        print '%s: %s' % (field, value)
+        print('%s: %s' % (field.decode(), value.decode()))
         if __CSV__:
             #CSVEDIT: If you want both Field and Value in CSV output, uncomment
             #next line and comment line after.
             #csv_body += ',' + field + ',' + value
-            csv_body += ',' + value
+            csv_body += ',' + value.decode()
     if __CSV__:
         global csvfile
         csvfile = fname + '.csv'
@@ -125,15 +128,15 @@ def sec2_parse_602():
     """
     data.seek(32)
     if data.tell() >= filesize:
-        print 'Truncated file'
+        print('Truncated file')
     len_URL = struct.unpack('b', data.read(1))[0]
     data_URL = data.read(len_URL)
     namespace_len = struct.unpack('>h', data.read(2))[0]
     namespace = data.read(namespace_len)
     sec2_fields = struct.unpack('>l', data.read(4))[0]
 
-    print '\n[*] Section 2 (Download History) found:'
-    print 'URL: %s' % (data_URL)
+    print('\n[*] Section 2 (Download History) found:')
+    print('URL: %s' % (data_URL.decode()))
     if __CSV__:
         csv_body = fname + ',' + data_URL
 
@@ -142,7 +145,7 @@ def sec2_parse_602():
         field = data.read(len_field)
         len_value = struct.unpack('>h', data.read(2))[0]
         value = data.read(len_value)
-        print '%s: %s' % (field, value)
+        print('%s: %s' % (field.decode(), value.decode()))
         if __CSV__:
             #CSVEDIT: If you want both Field and Value in CSV output, uncomment
             #next line and comment line after.
@@ -157,21 +160,21 @@ def sec2_parse_602():
     # See if section 3 exists
     if data.tell()+3 < filesize:
         sec3_magic, sec3_ver = struct.unpack('>HH', data.read(4))
-    print '\n[*] Section 3 (Additional Data) found:'
+    print('\n[*] Section 3 (Additional Data) found:')
     if sec3_magic == 0xACED:
-        print '[*] Serialized data found of type:',
+        print('[*] Serialized data found of type:')
         sec3_type = struct.unpack('b', data.read(1))[0]
         if sec3_type == 0x77: #Data block
-            print 'Data Block'
+            print('Data Block')
             throwaway = data.read(1)
             block_len = struct.unpack('>l', data.read(4))[0]
             block_raw = data.read(block_len)
             if block_raw[0:3] == '\x1F\x8B\x08': # Valid GZIP header
-                print '[*] Compressed data found'
+                print('[*] Compressed data found')
                 sec3_unc = zlib.decompress(block_raw, 15+32) # Trick to force bitwindow size
-                print sec3_unc
+                print(sec3_unc)
         else:
-            print 'Unknown serialization opcode found'
+            print('Unknown serialization opcode found')
         return
 
 
@@ -182,10 +185,9 @@ def sec3_parse():
     """
     data.seek (128+sec2_len)
     sec3_data = data.read(sec3_len)
-
-    if sec3_data[0:3] == '\x1F\x8B\x08': # Valid GZIP header
+    if sec3_data[0:3].hex().upper() == '1F8B08': # Valid GZIP header
         sec3_unc = zlib.decompress(sec3_data, 15+32) # Trick to force bitwindow size
-        print sec3_unc.strip()
+        print(sec3_unc.decode().strip()) # .strip()
 
 
 def sec4_parse():
@@ -201,29 +203,29 @@ def sec4_parse():
     if sec4_magic == 0xACED: # Magic number for Java serialized data, version always appears to be 5
         while not data.tell() == filesize: # If current offset isn't at end of file yet
             if unknowns > 5:
-                print 'Too many unrecognized bytes. Exiting.'
+                print('Too many unrecognized bytes. Exiting.')
                 return
             sec4_type = struct.unpack('B', data.read(1))[0]
             if sec4_type == 0x77: #Data block ...
                                   #This _should_ parse for 0x78 (ENDDATABLOCK) but Oracle didn't follow their own specs for IDX files.
-                print '[*] Found: Data block. ',
+                print('[*] Found: Data block. ')
                 block_len = struct.unpack('b', data.read(1))[0]
                 block_raw = data.read(block_len)
                 if block_raw[0:3] == '\x1F\x8B\x08': # Valid GZIP header
                     sec4_unc = zlib.decompress(block_raw, 15+32) # Trick to force bitwindow size
-                    print sec4_unc.encode('hex')
+                    print(sec4_unc.hex()) # .hex()
                 else:
-                    print 'Length: %-2d\nData: %-10s\tHex: %s' % (block_len, block_raw.strip(), block_raw.encode('hex'))
+                    print('Length: %-2d\nData: %-10s\tHex: %s' % (block_len, block_raw.strip().decode(), block_raw.hex())) # was .encode('hex')
             elif sec4_type == 0x73: #Object
-                print '[*] Found: Object\n->',
+                print('[*] Found: Object\n->')
                 continue
             elif sec4_type == 0x72: #Class Description
-                print '[*] Found: Class Description:',
+                print('[*] Found: Class Description:')
                 block_len = struct.unpack('>h', data.read(2))[0]
                 block_raw = data.read(block_len)
-                print block_raw
+                print(block_raw)
             else:
-                print 'Unknown serialization opcode found: 0x%X' % sec4_type
+                print('Unknown serialization opcode found: 0x%X' % sec4_type)
                 unknowns += 1
         return
 
@@ -234,7 +236,8 @@ if __name__ == '__main__':
     Display help, handle command line arguments, read initial header to determine
     which functions to call.
     """
-    print 'Java IDX Parser -- version %s -- by @bbaskin\n' % __VERSION__
+    print('Java IDX Parser -- version %s -- by @bbaskin\n' % __VERSION__)
+    print('Updated for python3 by Corey Forman - https://github.com/digitalsleuth')
     try:
         if sys.argv[1] in ['-c', '-C']:
             __CSV__ = True
@@ -242,14 +245,14 @@ if __name__ == '__main__':
         else:
             fname = sys.argv[1]
     except:
-        print 'Usage: idx_parser.py <filename>'
-        print '\nTo generate a CSV output file:'
-        print '     : idx_parser.py -c <filename>'
+        print('Usage: idx_parser.py <filename>')
+        print('\nTo generate a CSV output file:')
+        print('     : idx_parser.py -c <filename>')
         sys.exit()
     try:
         data = open(fname, 'rb')
     except:
-        print 'File not found: %s' % fname
+        print('File not found: %s' % fname)
         sys.exit()
 
     filesize = os.path.getsize(fname)
@@ -259,10 +262,10 @@ if __name__ == '__main__':
     cache_ver = struct.unpack('>i', data.read(4))[0]
 
     if cache_ver not in (602, 603, 604, 605, 606):
-        print 'Invalid IDX header found'
-        print 'Found:    0x%s' % cache_ver
+        print('Invalid IDX header found')
+        print('Found:    0x%s' % cache_ver)
         sys.exit()
-    print 'IDX file: %s (IDX File Version %d.%02d)' % (fname, cache_ver / 100, cache_ver - 600)
+    print('IDX file: %s (IDX File Version %d.%02d)' % (fname, cache_ver / 100, cache_ver - 600))
 
     # Different IDX cache versions have data in different offsets
     if cache_ver in [602, 603, 604, 605]:
@@ -276,13 +279,13 @@ if __name__ == '__main__':
         expiration_date = struct.unpack('>q', data.read(8))[0]/1000
         validation_date = struct.unpack('>q', data.read(8))[0]/1000
 
-        print '\n[*] Section 1 (Metadata) found:'
-        print 'Content length: %d' % content_len
-        print 'Last modified date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(last_modified_date)), last_modified_date)
+        print('\n[*] Section 1 (Metadata) found:')
+        print('Content length: %d' % content_len)
+        print('Last modified date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(last_modified_date)), last_modified_date))
         if expiration_date:
-            print 'Expiration date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(expiration_date)), expiration_date)
+            print('Expiration date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(expiration_date)), expiration_date))
         if validation_date:
-            print 'Validation date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(validation_date)), validation_date)
+            print('Validation date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(validation_date)), validation_date))
 
         if cache_ver == 602:
             sec2_len = 1
@@ -301,19 +304,19 @@ if __name__ == '__main__':
             class_verification_status = data.read(1)
             reduced_manifest_length = struct.unpack('>l', data.read(4))[0]
 
-            print 'Section 2 length: %d' % sec2_len
+            print('Section 2 length: %d' % sec2_len)
             if sec3_len: 
-                print 'Section 3 length: %d' % sec3_len
+                print('Section 3 length: %d' % sec3_len)
             if sec4_len: 
-                print 'Section 4 length: %d' % sec4_len
+                print('Section 4 length: %d' % sec4_len)
             if sec5_len: 
-                print 'Section 4 length: %d' % sec5_len
+                print('Section 4 length: %d' % sec5_len)
             if expiration_date:
-                print 'Blacklist Expiration date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(blacklist_timestamp)), blacklist_timestamp)
+                print('Blacklist Expiration date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(blacklist_timestamp)), blacklist_timestamp))
             if cert_expiration_date:
-                print 'Certificate Expiration date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(cert_expiration_date)), cert_expiration_date)
+                print('Certificate Expiration date: %s (epoch: %d)' % (time.strftime('%a, %d %b %Y %X GMT', time.gmtime(cert_expiration_date)), cert_expiration_date))
     else:
-        print 'Current file version, %d, is not supported at this time.' % cache_ver
+        print('Current file version, %d, is not supported at this time.' % cache_ver)
         sys.exit()
 
     if sec2_len:
@@ -323,15 +326,15 @@ if __name__ == '__main__':
             sec2_parse()
 
     if sec3_len:
-        print '\n[*] Section 3 (Jar Manifest) found:'
+        print('\n[*] Section 3 (Jar Manifest) found:')
         sec3_parse()
 
     if sec4_len:
-        print '\n[*] Section 4 (Code Signer) found:'
+        print('\n[*] Section 4 (Code Signer) found:')
         sec4_parse()
 
     if sec5_len:
-        print '\n[*] Section 5 found (offset 0x%X, length %d bytes)' % (128 + sec2_len + sec3_len + sec4_len, sec5_len)
+        print('\n[*] Section 5 found (offset 0x%X, length %d bytes)' % (128 + sec2_len + sec3_len + sec4_len, sec5_len))
 
     if __CSV__:
-        print '\n\n[*] CSV file written to %s' % csvfile
+        print('\n\n[*] CSV file written to %s' % csvfile)

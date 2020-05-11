@@ -236,8 +236,8 @@ if __name__ == '__main__':
     Display help, handle command line arguments, read initial header to determine
     which functions to call.
     """
-    print('Java IDX Parser -- version %s -- by @bbaskin\n' % __VERSION__)
-    print('Updated for python3 by Corey Forman - https://github.com/digitalsleuth')
+    print('Java IDX Parser -- version %s -- by @bbaskin' % __VERSION__)
+    print('Updated for python3 by Corey Forman - https://github.com/digitalsleuth\n')
     try:
         if sys.argv[1] in ['-c', '-C']:
             __CSV__ = True

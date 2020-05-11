@@ -1,5 +1,5 @@
 ## Java_IDX_Parser
-Updated for python 3 (now version 1.6)
+Updated for python 3 (now version 1.6)<br>
 The original, and the best, Java Cache IDX parser.
 
 This was written as a result of working quite a few Java malware infection cases. While I grew proficient at manually carving the Java IDX file, which retains download history of malicious Java archives, I learned that a tool may work better when teaching my coworkers how to do the same.

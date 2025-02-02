@@ -1,5 +1,6 @@
-## Java_IDX_Parser
-Updated for python 3 (now version 1.6)<br>
+## Java_IDX_Parser (idx-parser)
+Updated for python 3 (now version 2.1)<br>
+
 The original, and the best, Java Cache IDX parser.
 
 This was written as a result of working quite a few Java malware infection cases. While I grew proficient at manually carving the Java IDX file, which retains download history of malicious Java archives, I learned that a tool may work better when teaching my coworkers how to do the same.
@@ -14,35 +15,59 @@ The latest release removes all interpretation of the file, outputting just raw d
 
 ## Example usage
 
-    idx_parser.py Samples\malware\1c20de82-1678cc50.idx
-    
-    Java IDX Parser -- version 1.6 -- by @bbaskin
-    Updated for python3 by Corey Forman - https://github.com/digitalsleuth
-    
-    IDX file: Samples\malware\1c20de82-1678cc50.idx (IDX File Version 6.05)
-    [\*] Section 2 (Download History) found:
-    URL: hxxp://80d3c146d3.gshjsewsf.su:82/forum/dare.php?hsh=6&key=b30a14e1c597bd7215d593d3f03bd1ab
-    IP: 50.7.219.70
-    &lt;null&gt;: HTTP/1.1 200 OK
-    content-length: 7162
-    last-modified: Mon, 26 Jul 2001 05:00:00 GMT
-    content-type: application/x-java-archive
-    date: Sun, 13 Jan 2013 16:22:01 GMT
-    server: nginx/1.0.15
-    deploy-request-content-type: application/x-java-archive
+```bash
 
-    [\*] Section 3 (Jar Manifest) found:
-    Manifest-Version: 1.0
-    Ant-Version: Apache Ant 1.8.3
-    X-COMMENT: Main-Class will be added automatically by build
-    Class-Path:
-    Created-By: 1.7.0_07-b11 (Oracle Corporation)
+usage: idx_parser.py [-h] [-c] FILENAME
 
-    [\*] Section 4 (Code Signer) found:
-    [\*] Found: Data block.  Length: 4
-    Data:                   Hex: 00000000
-    [\*] Found: Data block.  Length: 3
-    Data: 0                 Hex: 300d0a
+Java IDX Parser v2.1 -- by @bbaskin and digitalsleuth
+
+positional arguments:
+  FILENAME    IDX file to process
+
+options:
+  -h, --help  show this help message and exit
+  -c, --csv   Generates pipe (|) separated file of results (to avoid comma
+              collision)
+
+idx-parser Samples\malware\1c20de82-1678cc50.idx
+
+IDX file: O:\\java-idx-parser\\1c20de82-1678cc50.idx (IDX File Version 6.05.05)
+
+[*] Section 1 (Metadata) found:
+Content length: 7162
+Last modified date: Thu, 26 Jul 2001 05:00:00 GMT (epoch: 996123600.0)
+Section 2 length: 365
+Section 3 length: 167
+Section 4 length: 15
+Blacklist Expiration date: Sun, 13 Jan 2013 15:22:26 GMT (epoch: 1358090546.335)
+
+[*] Section 2 (Download History) found:
+URL: http://80d3c146d3.gshjsewsf.su:82/forum/dare.php?hsh=6&key=b30a14e1c597bd7215d593d3f03bd1ab
+IP: 50.7.219.70
+<null>: HTTP/1.1 200 OK
+content-length: 7162
+last-modified: Mon, 26 Jul 2001 05:00:00 GMT
+content-type: application/x-java-archive
+date: Sun, 13 Jan 2013 16:22:01 GMT
+server: nginx/1.0.15
+deploy-request-content-type: application/x-java-archive
+
+[*] Section 3 (Jar Manifest) found:
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.8.3
+X-COMMENT: Main-Class will be added automatically by build
+Class-Path:
+Created-By: 1.7.0_07-b11 (Oracle Corporation)
+
+[*] Section 4 (Code Signer) found:
+[*] Found: Data block. 
+Length:  4
+Data: b'\x00\x00\x00\x00'	Hex: 0x00000000
+[*] Found: Data block. 
+Length:  3
+Data: b'0'      	Hex: 0x300d0a
+
+```
 
 ## Copyright and license
 

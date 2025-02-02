@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+exclude = ["debian*", "binaries*", "build*", "dist*"]
+
+[project]
+name = "idx-parser"
+version = "2.1.0"
+requires-python = ">=3.8"
+authors = [
+  {name = "Corey Forman (digitalsleuth) and Brian Baskin", email = "github@digitalsleuth.ca"}
+]
+maintainers = [
+  {name = "Corey Forman (digitalsleuth)", email = "github@digitalsleuth.ca"}
+]
+description = "Python 3 Java IDX Parser"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["digital forensics", "dfir", "java", "idx-parser"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent"
+]
+
+[project.urls]
+Homepage = "https://github.com/digitalsleuth/Java_IDX_Parser"
+
+[project.scripts]
+idx-parser = "idx_parser.idx_parser:main"
